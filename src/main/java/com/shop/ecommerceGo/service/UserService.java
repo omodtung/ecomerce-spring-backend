@@ -4,6 +4,7 @@ import com.shop.ecommerceGo.domain.Role;
 import com.shop.ecommerceGo.domain.User;
 import com.shop.ecommerceGo.repository.RoleRepository;
 import com.shop.ecommerceGo.repository.UserRepository;
+import java.util.List;
 import org.eclipse.tags.shaded.org.apache.regexp.recompile;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +28,23 @@ public class UserService {
   }
 
   public Role getRoleByName(String name) {
+    System.out.println(
+      "-getRoleByName-" + this.roleRepository.findByName(name)
+    );
+    // -getRoleByName-Role [id=2, name=USER, description=User thông thường]
+
     return this.roleRepository.findByName(name);
+  }
+
+  public List<User> getAllUser() {
+    return userRepository.findAll();
+  }
+
+  public void deleteUser(long id) {
+    userRepository.deleteById(id);
+  }
+
+  public List<User> getUserByEmail(String email) {
+    return this.userRepository.findOneByEmail(email);
   }
 }
