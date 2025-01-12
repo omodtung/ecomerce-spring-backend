@@ -1,0 +1,3 @@
+   <!-- <c:forEach begin="0" end="${totalPages - 1}" varStatus="loop"> -->
+   /home/dothetung/Projects/Spring-Boot/ecommerceGo/src/main/webapp/WEB-INF/view/admin/user/show.jsp
+fix this error
