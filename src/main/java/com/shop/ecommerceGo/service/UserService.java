@@ -2,6 +2,7 @@ package com.shop.ecommerceGo.service;
 
 import com.shop.ecommerceGo.domain.Role;
 import com.shop.ecommerceGo.domain.User;
+import com.shop.ecommerceGo.domain.dto.RegisterDTO;
 import com.shop.ecommerceGo.repository.RoleRepository;
 import com.shop.ecommerceGo.repository.UserRepository;
 import java.util.List;
@@ -50,5 +51,17 @@ public class UserService {
 
   public User getUserById(long id) {
     return userRepository.findById(id);
+  }
+
+  public User registerDTOtoUser(RegisterDTO registerDTO) {
+    User user = new User();
+    user.setFullName(registerDTO.getFirstName() + registerDTO.getLastName());
+    user.setEmail(registerDTO.getEmail());
+    user.setPassword(registerDTO.getPassword());
+    return user;
+  }
+
+  public boolean checkExistEmail(String emailCheck) {
+    return userRepository.checkExistEmaill(emailCheck) > 0;
   }
 }
