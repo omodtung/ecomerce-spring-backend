@@ -7,6 +7,7 @@ import com.shop.ecommerceGo.service.ProductService;
 import com.shop.ecommerceGo.service.UserService;
 import jakarta.validation.Valid;
 import java.util.List;
+import org.springframework.security.crypto.password.PasswordEncoder;
 // import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,16 +21,19 @@ public class HomePageController {
 
   private final ProductService productService;
   private final UserService userService;
+  private final PasswordEncoder passwordEncoder;
 
   // private final PasswordEncoder passwordEncoder;
 
   public HomePageController(
     ProductService productService,
-    UserService userService
+    UserService userService,
+    PasswordEncoder passwordEncoder
     // PasswordEncoder passwordEncoder
   ) {
     this.productService = productService;
     this.userService = userService;
+    this.passwordEncoder = passwordEncoder;
     // this.passwordEncoder = passwordEncoder;
   }
 
@@ -70,7 +74,7 @@ public class HomePageController {
 
     User user = this.userService.registerDTOtoUser(registerDTO);
     // String hashPassword = this.passwordhãy để cho anh thêm một lần yêu emEncoder.encode(user.getPassword());
-    String hashPassword = user.getPassword();
+    String hashPassword = this.passwordEncoder.encode(user.getPassword());
     user.setPassword(hashPassword);
     user.setRole(userService.getRoleByName("USER"));
 
