@@ -11,8 +11,10 @@ import java.net.PasswordAuthentication;
 import java.util.List;
 import org.apache.tomcat.util.http.fileupload.UploadContext;
 import org.eclipse.tags.shaded.org.apache.xpath.operations.Mod;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 // import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -29,15 +31,18 @@ public class UserController {
 
   private final UserService userService;
   private final UploadService uploadService;
+  private final PasswordEncoder passwordEncoder;
 
+  @Autowired
   public UserController(
     UserService userService,
     UploadService uploadService,
-    ServletContext servletContext
+    ServletContext servletContext,
+    PasswordEncoder passwordEncoder
   ) {
     this.userService = userService;
-
     this.uploadService = uploadService;
+    this.passwordEncoder = passwordEncoder;
   }
 
   @RequestMapping("/admin/user")
@@ -59,7 +64,7 @@ public class UserController {
   public String getCreateUserPage(Model model) {
     model.addAttribute("newUser", new User());
     return "admin/user/create";
-  } 
+  }
 
   @PostMapping(value = "/admin/user/create")
   public String createUserPage(
@@ -68,9 +73,10 @@ public class UserController {
     @RequestParam("File") MultipartFile file
   ) {
     String avatar = this.uploadService.handleSaveUpLoadFile(file, "avatar");
-    // String hashPassword = this.passwordEncoder.encode(user_new.getPassword());
+    String hashPassword = this.passwordEncoder.encode(user_new.getPassword());
     user_new.setAvatar(avatar);
-    user_new.setPassword(user_new.getPassword());
+    user_new.setPassword(hashPassword);
+
     System.out.println("oke" + user_new.getRole().getName());
     // USER
     System.out.println("no oke" + user_new.getRole());

@@ -18,4 +18,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
   @Query("select count(u) from User u where u.email = ?1")
   int checkExistEmaill(String email);
+
+  User findByEmail(String email);
 }
