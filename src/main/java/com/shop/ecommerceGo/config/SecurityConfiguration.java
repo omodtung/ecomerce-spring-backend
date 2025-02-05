@@ -1,5 +1,6 @@
 package com.shop.ecommerceGo.config;
 
+import com.shop.ecommerceGo.config.CustomSuccessHandler;
 import com.shop.ecommerceGo.service.CustomUserDetailsService;
 import com.shop.ecommerceGo.service.UserService;
 import jakarta.servlet.DispatcherType;
@@ -14,6 +15,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.HttpMessageConverterAuthenticationSuccessHandler.AuthenticationSuccess;
 
 @Configuration
 @EnableMethodSecurity(securedEnabled = true)
@@ -58,6 +61,11 @@ public class SecurityConfiguration {
   }
 
   @Bean
+  public AuthenticationSuccessHandler customSuccessHandler() {
+    return new CustomSuccessHandler();
+  }
+
+  @Bean
   SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     // v6. lamda
     http
@@ -71,17 +79,24 @@ public class SecurityConfiguration {
           .requestMatchers(
             "/",
             "/login",
+            "/product/**",
             "/client/**",
             "/css/**",
             "/js/**",
             "/images/**"
           )
           .permitAll()
+          .requestMatchers("/admin/**")
+          .hasRole("ADMIN")
           .anyRequest()
           .authenticated()
       )
       .formLogin(formLogin ->
-        formLogin.loginPage("/login").failureUrl("/login?error").permitAll()
+        formLogin
+          .loginPage("/login")
+          .failureUrl("/login?error")
+          .successHandler(customSuccessHandler())
+          .permitAll()
       );
 
     return http.build();
