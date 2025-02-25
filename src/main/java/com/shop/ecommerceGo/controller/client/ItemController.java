@@ -1,9 +1,14 @@
 package com.shop.ecommerceGo.controller.client;
 
+import com.shop.ecommerceGo.domain.Cart;
+import com.shop.ecommerceGo.domain.CartDetail;
 import com.shop.ecommerceGo.domain.Product;
+import com.shop.ecommerceGo.domain.User;
 import com.shop.ecommerceGo.service.ProductService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import java.util.ArrayList;
+import java.util.List;
 import org.eclipse.tags.shaded.org.apache.regexp.recompile;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -43,7 +48,36 @@ public class ItemController {
   }
 
   @GetMapping("/cart")
-  public String getCartPage(Model model) {
+  public String getCartPage(Model model, HttpServletRequest request) {
+    User currentUser = new User();
+    HttpSession session = request.getSession(false);
+
+    long id = (long) session.getAttribute("id");
+    currentUser.setId(id);
+    Cart cart = this.productService.fetchByUser(currentUser);
+
+    List<CartDetail> cartDetails = cart == null
+      ? new ArrayList<CartDetail>()
+      : cart.getCartDetails();
+
+    double totalPrice = 0;
+    for (CartDetail cd : cartDetails) {
+      totalPrice += cd.getPrice() * cd.getQuantity();
+    }
+    model.addAttribute("cartDetails", cartDetails);
+    model.addAttribute("totalPrice", totalPrice);
+    model.addAttribute("cart", cart);
     return "client/cart/show";
+  }
+
+  @PostMapping("/delete-cart-product/{id}")
+  public String deleteCartDetail(
+    @PathVariable long id,
+    HttpServletRequest request
+  ) {
+    HttpSession session = request.getSession(false);
+    long cartDetailId = id;
+    this.productService.handleRemoveCartDetail(cartDetailId, session);
+    return "redirect:/cart";
   }
 }

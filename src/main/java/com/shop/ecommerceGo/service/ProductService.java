@@ -93,4 +93,26 @@ public class ProductService {
   public Cart fetchByUser(User user) {
     return this.cartRepository.findByUser(user);
   }
+
+  public void handleRemoveCartDetail(long cartDetailId, HttpSession session) {
+    Optional<CartDetail> cardDetailOptional =
+      this.cartDetailRepository.findById(cartDetailId);
+    if (cardDetailOptional.isPresent()) {
+      CartDetail cartDetail = cardDetailOptional.get();
+      // list thong tin cua cart cha ( id  , sum , user ,cardDetail )
+      Cart currentCart = cartDetail.getCart();
+      System.err.println("lay toan bo " + currentCart);
+
+      this.cartDetailRepository.deleteById(cartDetailId);
+      if (currentCart.getSum() > 1) {
+        int s = currentCart.getSum() - 1;
+        currentCart.setSum(s);
+        session.setAttribute("sum", s);
+        this.cartRepository.save(currentCart);
+      } else {
+        this.cartRepository.deleteById(currentCart.getId());
+        session.setAttribute("sum", 0);
+      }
+    }
+  }
 }

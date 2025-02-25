@@ -1,3 +1,83 @@
-   <!-- <c:forEach begin="0" end="${totalPages - 1}" varStatus="loop"> -->
-   /home/dothetung/Projects/Spring-Boot/ecommerceGo/src/main/webapp/WEB-INF/view/admin/user/show.jsp
-fix this error
+Su Dung Cach Nay de thuc hien truy van sql 
+
+Using Named Parameters
+
+By default, Spring Data JPA uses position-based parameter binding, as described in all the preceding examples. This makes query methods a little error-prone when refactoring regarding the parameter position. To solve this issue, you can use @Param annotation to give a method parameter a concrete name and bind the name in the query, as shown in the following example:
+Example 14. Using named parameters
+
+public interface UserRepository extends JpaRepository<User, Long> {
+
+  @Query("select u from User u where u.firstname = :firstname or u.lastname = :lastname")
+  User findByLastnameOrFirstname(@Param("lastname") String lastname,
+                                 @Param("firstname") String firstname);
+}
+
+
+Giai Thich :
+nó lấy ở dưới đấy và cài vào cái gọi là key của @Param phải không
+ChatGPT said:
+
+Đúng vậy! Khi bạn sử dụng @Param trong phương thức, các tham số bạn truyền vào sẽ được gán cho các "placeholder" trong câu lệnh @Query (các tham chiếu như :firstname và :lastname trong trường hợp của bạn).
+
+Ví dụ trong trường hợp này:
+
+@Query("select u from User u where u.firstname = :firstname or u.lastname = :lastname")
+User findByLastnameOrFirstname(@Param("lastname") String lastname,
+                                 @Param("firstname") String firstname);
+
+    @Param("firstname") sẽ liên kết với tham số firstname trong câu lệnh @Query, nghĩa là khi bạn truyền giá trị vào tham số firstname, giá trị đó sẽ thay thế :firstname trong câu truy vấn.
+    @Param("lastname") sẽ liên kết với tham số lastname trong câu lệnh @Query, nghĩa là khi bạn truyền giá trị vào tham số lastname, giá trị đó sẽ thay thế :lastname trong câu truy vấn.
+
+Khi gọi phương thức như sau:
+
+userRepository.findByLastnameOrFirstname("Smith", "John");
+
+Các tham số sẽ được gán vào câu truy vấn như sau:
+
+    :firstname sẽ nhận giá trị "John"
+    :lastname sẽ nhận giá trị "Smith"
+
+Vì vậy, câu truy vấn SQL thực tế sẽ là:
+
+select u from User u where u.firstname = 'John' or u.lastname = 'Smith'
+
+
+
+Using Advanced LIKE Expressions
+
+The query running mechanism for manually defined queries created with @Query allows the definition of advanced LIKE expressions inside the query definition, as shown in the following example:
+Example 9. Advanced like expressions in @Query
+
+public interface UserRepository extends JpaRepository<User, Long> {
+
+  @Query("select u from User u where u.firstname like %?1")
+  List<User> findByFirstnameEndsWith(String firstname);
+}
+
+
+
+
+
+Native Queries
+
+Using the @NativeQuery annotation allows running native queries, as shown in the following example:
+Example 10. Declare a native query at the query method using @Query
+
+public interface UserRepository extends JpaRepository<User, Long> {
+
+  @NativeQuery(value = "SELECT * FROM USERS WHERE EMAIL_ADDRESS = ?1")
+  User findByEmailAddress(String emailAddress);
+}
+
+
+
+
+
+Modifying Queries
+
+All the previous sections describe how to declare queries to access a given entity or collection of entities. You can add custom modifying behavior by using the custom method facilities described in Custom Implementations for Spring Data Repositories. As this approach is feasible for comprehensive custom functionality, you can modify queries that only need parameter binding by annotating the query method with @Modifying, as shown in the following example:
+Example 21. Declaring manipulating queries
+
+@Modifying
+@Query("update User u set u.firstname = ?1 where u.lastname = ?2")
+int setFixedFirstnameFor(String firstname, String lastname);
