@@ -29,6 +29,7 @@ public class Cart {
     private User user;
 
     // cart_detail_id
+    // phai co join column thi moi tao ra field tren db
     @OneToMany(mappedBy = "cart")
     List<CartDetail> cartDetails;
 
