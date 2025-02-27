@@ -1,10 +1,14 @@
 package com.shop.ecommerceGo.controller.client;
 
+import com.shop.ecommerceGo.domain.Order;
 import com.shop.ecommerceGo.domain.Product;
 import com.shop.ecommerceGo.domain.User;
 import com.shop.ecommerceGo.domain.dto.RegisterDTO;
+import com.shop.ecommerceGo.service.OrderService;
 import com.shop.ecommerceGo.service.ProductService;
 import com.shop.ecommerceGo.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,18 +26,21 @@ public class HomePageController {
   private final ProductService productService;
   private final UserService userService;
   private final PasswordEncoder passwordEncoder;
+  private final OrderService orderService;
 
   // private final PasswordEncoder passwordEncoder;
 
   public HomePageController(
     ProductService productService,
     UserService userService,
-    PasswordEncoder passwordEncoder
+    PasswordEncoder passwordEncoder,
+    OrderService orderService
     // PasswordEncoder passwordEncoder
   ) {
     this.productService = productService;
     this.userService = userService;
     this.passwordEncoder = passwordEncoder;
+    this.orderService = orderService;
     // this.passwordEncoder = passwordEncoder;
   }
 
@@ -89,10 +96,22 @@ public class HomePageController {
   public String getLoginPage(Model model) {
     return "client/auth/login";
   }
-  
+
   @GetMapping("/access-deny")
   public String getDenyPage(Model model) {
+    return "client/auth/deny";
+  }
 
-      return "client/auth/deny";
+  @GetMapping("/order-history")
+  public String getOrderHistoryPage(Model model, HttpServletRequest request) {
+    User currentUser = new User(); // null
+    HttpSession session = request.getSession(false);
+    long id = (long) session.getAttribute("id");
+    currentUser.setId(id);
+
+    List<Order> orders = this.orderService.fetchOrderByUser(currentUser);
+    model.addAttribute("orders", orders);
+
+    return "client/cart/order-history";
   }
 }
