@@ -62,7 +62,8 @@ public class ProductService {
   public void handleAddProductToCart(
     String email,
     long productId,
-    HttpSession session
+    HttpSession session,
+    long quantity
   ) {
     User user = this.userService.FindUserByEmail(email);
     if (user != null) {
@@ -71,7 +72,7 @@ public class ProductService {
         // add product to cart
         Cart otherCart = new Cart();
         otherCart.setUser(user);
-        otherCart.setSum(1);
+        otherCart.setSum(0);
         cart = this.cartRepository.save(otherCart);
       }
       Optional<Product> productOptional =
@@ -150,34 +151,38 @@ public class ProductService {
     Cart cart = this.cartRepository.findByUser(user);
     if (cart != null) {
       List<CartDetail> cartDetails = cart.getCartDetails();
+      if (cartDetails != null) {
+        Order order = new Order();
+        order.setUser(user);
+        order.setReceiverAddress(receiverAddress);
+        order.setReceiverName(receiverName);
+        order.setReceiverPhone(receiverPhone);
+        order.setStatus("PENDING");
+        double sum = 0;
+        for (CartDetail cd : cartDetails) {
+          sum += cd.getPrice();
+        }
+        order.setTotalPrice(sum);
+        order = this.orderRepository.save(order);
+        // create orderDetail
+        for (CartDetail cd : cartDetails) {
+          OrderDetail orderDetail = new OrderDetail();
+          orderDetail.setOrder(order);
+          orderDetail.setProduct(cd.getProduct());
+          orderDetail.setPrice(cd.getPrice());
+          orderDetail.setQuantity(cd.getQuantity());
+          this.orderDetailRepository.save(orderDetail);
+        }
+        // step 2: delete cart_detail and cart
+        for (CartDetail cd : cartDetails) {
+          this.cartDetailRepository.deleteById(cd.getId());
+        }
 
-      Order order = new Order();
-      order.setUser(user);
-      order.setReceiverAddress(receiverAddress);
-      order.setReceiverName(receiverName);
-      order.setReceiverPhone(receiverPhone);
-      order.setStatus("PENDING");
-      double sum = 0;
-      for (CartDetail cd : cartDetails) {
-        sum += cd.getPrice();
+        cart.getCartDetails().clear();
+        cart.setSum(0);
+        this.cartRepository.save(cart);
+        session.setAttribute("sum", 0);
       }
-      order.setTotalPrice(sum);
-      order = this.orderRepository.save(order);
-      // create orderDetail
-      for (CartDetail cd : cartDetails) {
-        OrderDetail orderDetail = new OrderDetail();
-        orderDetail.setOrder(order);
-        orderDetail.setProduct(cd.getProduct());
-        orderDetail.setPrice(cd.getPrice());
-        orderDetail.setQuantity(cd.getQuantity());
-        this.orderDetailRepository.save(orderDetail);
-      }
-      // step 2: delete cart_detail and cart
-      for (CartDetail cd : cartDetails) {
-        this.cartDetailRepository.deleteById(cd.getId());
-      }
-      this.cartRepository.deleteById(cart.getId());
-      session.setAttribute("sum", 0);
     }
   }
 }
