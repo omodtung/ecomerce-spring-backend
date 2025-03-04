@@ -86,10 +86,21 @@ public class SecurityConfiguration {
             DispatcherType.INCLUDE
           )
           .permitAll()
+            // .requestMatchers(
+          //   "/",
+          //   "/login",
+          //   "/product/**",
+          //   "/client/**",
+          //   "/css/**",
+          //   "/js/**",
+          //   "/images/**"
+          // )
           .requestMatchers(
             "/",
             "/login",
             "/product/**",
+            "/register",
+            "/products/**",
             "/client/**",
             "/css/**",
             "/js/**",
@@ -101,11 +112,13 @@ public class SecurityConfiguration {
           .anyRequest()
           .authenticated()
       )
-      .sessionManagement((sessionManagement) -> sessionManagement
-                        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
-                        .invalidSessionUrl("/logout?expired")
-                        .maximumSessions(1)
-                        .maxSessionsPreventsLogin(false))
+      .sessionManagement(sessionManagement ->
+        sessionManagement
+          .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)
+          .invalidSessionUrl("/logout?expired")
+          .maximumSessions(1)
+          .maxSessionsPreventsLogin(false)
+      )
       .logout(logout ->
         logout.deleteCookies("JSESSIONID").invalidateHttpSession(true)
       )

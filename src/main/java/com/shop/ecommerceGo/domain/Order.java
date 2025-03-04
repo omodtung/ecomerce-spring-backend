@@ -1,6 +1,7 @@
 package com.shop.ecommerceGo.domain;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -101,9 +102,9 @@ public class Order {
         this.orderDetails = orderDetails;
     }
 
-    @Override
-    public String toString() {
-        return "Order [id=" + id + ", totalPrice=" + totalPrice + "]";
-    }
+    // @Override
+    // public String toString() {
+    //     return "Order [id=" + id + ", totalPrice=" + totalPrice +   "]";
+    // }
 
 }
