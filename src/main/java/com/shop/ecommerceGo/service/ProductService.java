@@ -6,15 +6,21 @@ import com.shop.ecommerceGo.domain.Order;
 import com.shop.ecommerceGo.domain.OrderDetail;
 import com.shop.ecommerceGo.domain.Product;
 import com.shop.ecommerceGo.domain.User;
+import com.shop.ecommerceGo.domain.dto.ProductCriteriaDTO;
 import com.shop.ecommerceGo.repository.CartDetailRepository;
 import com.shop.ecommerceGo.repository.CartRepository;
 import com.shop.ecommerceGo.repository.OrderDetailRepository;
 import com.shop.ecommerceGo.repository.OrderRepository;
 import com.shop.ecommerceGo.repository.ProductRepository;
+import com.shop.ecommerceGo.service.specification.ProductSpecs;
 import jakarta.servlet.http.HttpSession;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.eclipse.tags.shaded.org.apache.xpath.operations.Or;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -184,5 +190,82 @@ public class ProductService {
         session.setAttribute("sum", 0);
       }
     }
+  }
+
+  public Page<Product> fetchProductsByPage(
+    Pageable pageable,
+    ProductCriteriaDTO productCriteriaDTO
+  ) {
+    if (
+      productCriteriaDTO.getTarget() == null &&
+      productCriteriaDTO.getFactory() == null &&
+      productCriteriaDTO.getPrice() == null
+    ) {
+      return this.productRepository.findAll(pageable);
+    }
+    Specification<Product> combinedSpec = Specification.where(null);
+
+    if (
+      productCriteriaDTO.getTarget() != null &&
+      productCriteriaDTO.getTarget().isPresent()
+    ) {
+      Specification<Product> currentSpecs = ProductSpecs.matchListTarget(
+        productCriteriaDTO.getTarget().get()
+      );
+      combinedSpec = combinedSpec.and(currentSpecs);
+    }
+    if (
+      productCriteriaDTO.getFactory() != null &&
+      productCriteriaDTO.getFactory().isPresent()
+    ) {
+      Specification<Product> currentSpecs = ProductSpecs.matchListFactory(
+        productCriteriaDTO.getFactory().get()
+      );
+      combinedSpec = combinedSpec.and(currentSpecs);
+    }
+    if (
+      productCriteriaDTO.getPrice() != null &&
+      productCriteriaDTO.getPrice().isPresent()
+    ) {
+      Specification<Product> currentSpecs =
+        this.buildPriceSpecification(productCriteriaDTO.getPrice().get());
+      combinedSpec = combinedSpec.and(currentSpecs);
+    }
+    return this.productRepository.findAll(combinedSpec, pageable);
+  }
+
+  // case 6
+  public Specification<Product> buildPriceSpecification(List<String> price) {
+    Specification<Product> combineSpec = Specification.where(null);
+    for (String p : price) {
+      double min = 0;
+      double max = 0;
+      switch (p) {
+        case "duoi-10-trieu":
+          min = 1;
+          max = 10000000;
+          break;
+        case "10-15-trieu":
+          min = 10000000;
+          max = 15000000;
+          break;
+        case "15-20-trieu":
+          min = 15000000;
+          max = 20000000;
+          break;
+        case "tren-20-trieu":
+          min = 20000000;
+          max = 200000000;
+          break;
+      }
+      if (min != 0 && max != 0) {
+        Specification<Product> rangeSpec = ProductSpecs.matchMultiplePrice(
+          min,
+          max
+        );
+        combineSpec = combineSpec.or(rangeSpec);
+      }
+    }
+    return combineSpec;
   }
 }
